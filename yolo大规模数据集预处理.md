@@ -604,3 +604,132 @@ if __name__ == "__main__":
     main_md5()
     main_i_frame()
 ```
+
+使用BRISQUE算法获取图像清晰度指数：
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import argparse
+import shutil
+import torch
+import piq
+from skimage.io import imread
+from multiprocessing import Pool, cpu_count
+from tqdm import tqdm 
+
+def compute_brisque(img_path: str) -> dict:
+    """
+    读取图像并计算其 BRISQUE 指标。返回包含图像路径和 BRISQUE 指标的字典。
+    BRISQUE 值越小，表示图像质量越好（更清晰）。
+    """
+    try:
+        # 读取图像（skimage.io.imread 返回的是 [H, W, C] 维度）
+        img = imread(img_path)
+        
+        # 转换为 [N, C, H, W] 维度，并归一化到 [0,1]
+        # 这里把 N=1，当作 batch size=1
+        img_tensor = torch.tensor(img).permute(2, 0, 1).unsqueeze(0).float() / 255.0
+
+        # 如果可用，则移动到 GPU
+        if torch.cuda.is_available():
+            img_tensor = img_tensor.cuda()
+
+        # 使用 piq 计算 BRISQUE
+        brisque_score = piq.brisque(img_tensor, data_range=1.0, reduction='none')
+
+        # 因为 reduction='none'，返回的是一个长度为 batch size 的向量，这里 batch=1
+        score_value = brisque_score.item()
+
+        return {
+            "path": img_path,
+            "brisque": score_value
+        }
+    except Exception as e:
+        # 如果图片损坏或处理出错，可返回一个较大的值防止影响排序
+        # 或者您也可以根据需求做其他处理
+        return {
+            "path": img_path,
+            "brisque": float('inf')
+        }
+
+def get_image_files_recursive(folder: str):
+    """
+    递归遍历 folder，返回所有 .jpg / .jpeg / .png 文件的绝对路径列表。
+    """
+    valid_exts = {'.jpg', '.jpeg', '.png'}
+    result_files = []
+    for root, dirs, files in os.walk(folder):
+        for f in files:
+            ext = os.path.splitext(f)[1].lower()
+            if ext in valid_exts:
+                result_files.append(os.path.join(root, f))
+    return result_files
+
+def copy_top_images(image_info_list, target_folder):
+    """
+    将结果列表按 BRISQUE 升序(分数越小越好)排序，取前 30% 复制到目标目录。
+    """
+    sorted_list = sorted(image_info_list, key=lambda x: x["brisque"])
+    top_count = max(1, int(len(sorted_list) * 0.3))  # 取前30%
+    top_images = sorted_list[:top_count]
+
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder, exist_ok=True)
+
+    for item in tqdm(top_images, desc="复制图片"):
+        src_path = item["path"]
+        filename = os.path.basename(src_path)
+        dst_path = os.path.join(target_folder, filename)
+        shutil.copy2(src_path, dst_path)
+
+def main():
+    parser = argparse.ArgumentParser(description="使用 piq 库的 BRISQUE 指标来筛选图像清晰度")
+    parser.add_argument("src_folder", type=str, help="源文件夹路径")
+    parser.add_argument("dst_folder", type=str, help="目标文件夹路径")
+    parser.add_argument("--workers", type=int, default=0,
+                        help="并发进程数（默认为CPU核心数），0表示自动使用CPU核心数。")
+
+    args = parser.parse_args()
+
+    src_folder = args.src_folder
+    dst_folder = args.dst_folder
+
+    # 获取所有图片文件路径
+    image_files = get_image_files_recursive(src_folder)
+    if not image_files:
+        print("在指定的源文件夹中未找到任何 jpg/jpeg/png 图片。")
+        return
+
+    # 如果用户指定了workers
+    if args.workers <= 0:
+        workers = cpu_count()
+    else:
+        workers = args.workers
+
+    print(f"共找到 {len(image_files)} 张图片，开始计算 BRISQUE 分数...")
+
+    # 使用多进程计算
+    with Pool(processes=workers) as pool:
+        image_info_list = list(tqdm(
+            pool.imap(compute_brisque, image_files),
+            total=len(image_files),
+            desc="计算BRISQUE"
+        ))
+
+    print("BRISQUE 计算完毕，开始筛选并复制前 30% 的图片...")
+
+    # 将分数较好的（更清晰）图片复制到目标文件夹
+    copy_top_images(image_info_list, dst_folder)
+
+    print(f"处理完成！前 30% 的清晰图片已复制到: {dst_folder}")
+
+if __name__ == "__main__":
+    # 如果在 Windows 并且需要 GPU，可以考虑手动设定 start_method = 'spawn'
+    # import multiprocessing
+    # multiprocessing.set_start_method('spawn')
+    
+    main()
+
+```
