@@ -637,7 +637,7 @@ def compute_brisque(img_path: str) -> dict:
             img_tensor = img_tensor.cuda()
 
         # 使用 piq 计算 BRISQUE
-        brisque_score = piq.brisque(img_tensor, data_range=1.0, reduction='none')
+        brisque_score = piq.brisque(img_tensor, data_range=1., reduction='none')
 
         # 因为 reduction='none'，返回的是一个长度为 batch size 的向量，这里 batch=1
         score_value = brisque_score.item()
