@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 模型相关常量
-MODEL_NAME = "./models/MiniCPM-V-2_6"
+MODEL_NAME = "openbmb/MiniCPM-V-2_6"
 BATCH_SIZE = 32
 CACHE_FILE = "image_descriptions_cache.json"
 SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png'}
