@@ -204,7 +204,7 @@ class ImageProcessor:
         try:
             messages = [{
                 "role": "user",
-                "content": "(<image>./</image>)\n详细描述这张图片"
+                "content": "(<image>./</image>)\n Describe this image in detail"
             }]
             prompt = self.tokenizer.apply_chat_template(
                 messages,
