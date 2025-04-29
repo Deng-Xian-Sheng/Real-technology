@@ -378,8 +378,8 @@
                         console.log("OpenAI返回数据:", data);
                         if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
                             try {
-                                // 去除 ```json 和 ``` 
-                                const cleanedContent = data.choices[0].message.content.trim().replace(/```(json)?/g, '');
+                                // 如果以```json开始以```结束，就去除
+                                const cleanedContent = data.choices[0].message.content.trim().replace(/^```json\n([\s\S]*?)\n```$/, '$1');
                                 const parsed = JSON.parse(cleanedContent);
                                 adStart = typeof parsed.start === 'number' ? parsed.start : 0;
                                 adEnd = typeof parsed.end === 'number' ? parsed.end : 0;
