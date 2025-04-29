@@ -424,6 +424,7 @@
             // 当视频播放结束后，再播放广告
             function onEnded() {
                 if (adEnd > adStart) {
+                    video.pause();
                     console.log('视频主体播放结束，开始播放广告');
                     video.currentTime = adStart;
                     video.play();
