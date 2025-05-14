@@ -10,12 +10,12 @@ from transformers import CLIPProcessor
 from aesthetics_predictor import AestheticsPredictorV1
 
 # 评分阈值
-SCORE_THRESHOLD = 9.0
+SCORE_THRESHOLD = 9.5
 # 分辨率阈值（宽度和高度）
 # 横拍时：width >= MIN_WIDTH 且 height >= MIN_HEIGHT
 # 竖拍时：width >= MIN_HEIGHT 且 height >= MIN_WIDTH
-MIN_WIDTH = 3264
-MIN_HEIGHT = 2448
+MIN_WIDTH = 4032
+MIN_HEIGHT = 3024
 
 # 支持的图像格式
 VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
