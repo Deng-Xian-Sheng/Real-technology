@@ -161,23 +161,15 @@ class ImageProcessor:
         for path in image_paths:
             try:
                 # 验证图片
-                img = None
-                try:
-                    img = Image.open(path)
+                with Image.open(path) as img:
                     img.verify()
-                except Exception:
-                    logger.warning(f"图片可能不完整，但仍尝试处理: {path}")
-                finally:
-                    if img is not None:
-                        img.close()
 
                 # 重新打开并转换图片
                 with Image.open(path) as img:
-                    # 直接在内存中转换，避免保留原始图片
-                    converted_img = img.convert("RGB")
                     # 计算哈希值
                     file_hash = self._calculate_file_hash(path)
-
+                    # 直接在内存中转换，避免保留原始图片
+                    converted_img = img.convert("RGB")
                     images.append(converted_img)
                     valid_paths.append(path)
                     hashes.append(file_hash)
