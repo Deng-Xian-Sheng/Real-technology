@@ -159,6 +159,8 @@ rank = 16，lora权重文件大小约为49MB
 
 rank = 32，lora权重文件大小约为99MB
 
+rank = 64，lora权重文件大小约为199MB
+
 rank = 128，lora权重文件大小约为400MB
 
 rank = 256，lora权重文件大小约为800MB
