@@ -173,6 +173,8 @@ rank = 256，lora权重文件大小约为800MB
 
 **rank = 64训练注意力和FFN大小约为499MB**
 
+**如果还训练“norm”，也叫归一化层（Normalization layer），rank = 64训练注意力和FFN和norm的大小约为656MB**
+
 ## 四、注意事项
 
 ### 1、数据增强
