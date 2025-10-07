@@ -1,3 +1,5 @@
+fancyfeast/llama-joycaption-beta-one-hf-llava不会拒绝nsfw
+
 ```python
 # 它需要vllm，用于启动vllm的命令：
 #PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" HF_HOME=/root/autodl-tmp/model vllm serve fancyfeast/llama-joycaption-beta-one-hf-llava --trust-remote-code --enforce-eager --dtype bfloat16 --gpu-memory-utilization 0.90 --max-model-len 4096 --max-num-batched-tokens 12288 --enable-prefix-caching --port 8000 --download-dir /root/autodl-tmp/model --generation-config vllm
