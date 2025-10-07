@@ -1,5 +1,47 @@
-fancyfeast/llama-joycaption-beta-one-hf-llava不会拒绝nsfw
+fancyfeast/llama-joycaption-beta-one-hf-llava比CLIP更自然语言一点，比MiniCPM-V更不会拒绝nsfw，但不支持中文。
 
+如果你需要中文描述，可以用python的easynmt库的EasyNMT类，传入'opus-mt'，然后调用方法`model.translate(chinese_text, source_lang='zh', target_lang='en')`翻译一下，这对Qwen-Image这样的模型有用，Flux因为文本编码器是T5所以无法理解中文，对这种模型没用。
+
+这里有个翻译的小示例，它可用于已经有图片对应的描述（`.txt文本`）的数据集文件夹，翻译为中文并**覆盖文本描述**：
+```python
+import os
+import glob
+from easynmt import EasyNMT
+from tqdm import tqdm
+
+def translate_files(directory):
+    # 初始化 EasyNMT 模型，使用 opus-mt 作为翻译引擎
+    model = EasyNMT('opus-mt')
+
+    # 获取目录下所有的 .txt 文件
+    files = glob.glob(os.path.join(directory, "*.txt"))
+    
+    # 使用tqdm创建进度条
+    for file_path in tqdm(files, desc="Translating files", unit="file"):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            chinese_text = file.read()
+
+        # 批量翻译文本
+        english_text = model.translate(chinese_text, source_lang='zh', target_lang='en')
+
+        # 打印中文和对应的英文
+        print(f"\nFile: {file_path}")
+        print("Chinese:", chinese_text)
+        print("English:", english_text)
+        print("-" * 50)
+
+        # 将英文覆盖写入文件
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(english_text)
+
+# 运行程序
+if __name__ == "__main__":
+    dataset_dir = "./dataset"
+    translate_files(dataset_dir)
+```
+对于翻译的例子可以去看这篇文章：https://blog.csdn.net/Deng_Xian_Sheng/article/details/143929589
+
+下面是使用llama-joycaption-beta-one-hf-llava模型根据图片，生成对应的英文描述的代码：
 ```python
 # 它需要vllm，用于启动vllm的命令：
 #PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" HF_HOME=/root/autodl-tmp/model vllm serve fancyfeast/llama-joycaption-beta-one-hf-llava --trust-remote-code --enforce-eager --dtype bfloat16 --gpu-memory-utilization 0.90 --max-model-len 4096 --max-num-batched-tokens 12288 --enable-prefix-caching --port 8000 --download-dir /root/autodl-tmp/model --generation-config vllm
