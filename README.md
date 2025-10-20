@@ -3,4 +3,4 @@
 
 有些ipynb在github上无法预览，但是ipynb没问题，尝试vscode上或者google colab或者自己部署的python notebook
 
-ipynb预览真是个问题QAQ。用googlecolab链接我不喜欢。
+ipynb预览真是个问题QAQ。用google colab链接我不喜欢。
