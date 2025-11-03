@@ -179,7 +179,7 @@ noninteractive: 这个值告诉软件包管理器在执行安装、升级或其�
 # 基础环境（Python、curl 用于安装 code-server）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
-    curl ca-certificates build-essential \
+    curl ca-certificates build-essential python-is-python3 python3-dev cmake ninja \
  && rm -rf /var/lib/apt/lists/*
 
 # 创建符号链接，使 'python' 命令指向 'python3'
