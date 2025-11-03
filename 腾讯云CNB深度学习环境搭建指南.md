@@ -152,6 +152,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
     curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
+
+# 创建符号链接，使 'python' 命令指向 'python3'
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 ```
 
 然后需要一些CNB必要的依赖：
