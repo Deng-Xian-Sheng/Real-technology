@@ -249,7 +249,7 @@ $:
         tags: cnb:arch:amd64:gpu:H20
 ```
 表示我们使用英伟达的H20 GPU。我尝试发现有接近50G的显存可用。
-同时，也有一部分人使用`cnb:arch:amd64:gpu`，或许有些不同。
+同时，也有一部分人使用`cnb:arch:amd64:gpu`、`cnb:arch:amd64:gpu:L40`，或许有些不同。
 
 如果你需要在云开发环境启动后做些什么，例如从CNB的内网模型镜像拉取模型，或者从huggingface下载模型，或者运行类似于无服务器API的脚本，那么你可以写到这里：
 ```
@@ -263,3 +263,9 @@ $:
 ### 定价与免费额度
 
 https://docs.cnb.cool/zh/saas/pricing.html#ji-fei-gui-ze
+
+### 更多例子仓库
+
+如果有什么疑问，答案可能就在这里面：
+
+https://cnb.cool/examples/showcase
