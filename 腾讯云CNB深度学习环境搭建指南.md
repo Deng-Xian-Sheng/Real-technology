@@ -304,3 +304,5 @@ https://cnb.cool/examples/showcase
 ### 端口开放方式
 
 https://docs.cnb.cool/zh/workspaces/business-preview.html
+
+如果你有一些无服务器API的自动化需求，可以再看看开放API部分 https://docs.cnb.cool/zh/openapi.html ，里面有针对云开发环境的创建销毁操作。在文档中他们称为“云原生”。
