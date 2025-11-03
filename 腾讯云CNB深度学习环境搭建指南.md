@@ -28,6 +28,8 @@ https://cnb.cool/ai-models
 
 例如：black-forest-labs/FLUX.1-dev
 
+你可以将模型拉取到`/workspace/模型名`，记得在`.gitignore`文件添加排除，否则将模型推送到仓库会占用大量容量。
+
 ### 注册与实名
 
 CNB是通过微信扫码登录的，用户头像和用户昵称会继承微信的。
