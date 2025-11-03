@@ -203,6 +203,7 @@ HF_HUB_ENABLE_HF_TRANSFER 是一个环境变量，用于启用 Hugging Face Hub 
 # Python 依赖：
 # - 安装 PyTorch CUDA 12.1 + xformers（用于显存优化）
 # - 安装 transformers / accelerate / safetensors
+# 如果开启HF_HUB_ENABLE_HF_TRANSFER则需要添加它：hf-transfer
 RUN python3 -m pip install --upgrade pip setuptools wheel \
  && pip3 install --no-cache-dir \
     torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu121 \
@@ -214,8 +215,7 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
     sentencepiece \
     huggingface-hub \
     peft \
-    scipy \
-    hf-transfer
+    scipy
 ```
 上面是比较基础的一个依赖，你的依赖可能与上述有些不同，例如你可能还需要paddleocr、ultralytics、diffusers这样的库，可以继续添加。
 
