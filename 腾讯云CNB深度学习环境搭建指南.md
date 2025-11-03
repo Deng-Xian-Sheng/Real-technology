@@ -194,6 +194,10 @@ ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 # ENV HF_HUB_ENABLE_HF_TRANSFER=1
 ENV PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+# /workspace 是云开发环境启动后的仓库根目录，将模型目录设置到 /workspace/huggingface 并添加git排除文件就可以在不提交模型的情况下使用模型。
+# 如果要提交模型则需要在仓库下执行 git lfs install 以更新 .git/config ，然后 git lfs track "*.safetensors" 然后 git add .gitattributes 然后 git commit -m "add lfs" 然后才能添加模型这样的大文件，例如 git add .
+# 至于为什么不是 /root/.cache/huggingface ，CNB文档没说工作目录与其他目录的区别，但是我认为大多数云开发环境提供工作目录之后，工作目录之外的文件夹读写速度和大小可能不够
+ENV HF_HOME=/workspace/huggingface
 ```
 
 它们的意思是：
@@ -281,6 +285,7 @@ $:
           script: ls -al
 ```
 
+在启动开发环境之前，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
 
 ### 定价与免费额度
 
