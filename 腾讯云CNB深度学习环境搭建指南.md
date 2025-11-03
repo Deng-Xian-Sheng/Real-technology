@@ -130,6 +130,20 @@ git是一个必须使用的命令，详见本文中“# CNB的存储空间与Git
 
 OK，我们Dockerfile的第一句已经有了。
 
+然后需要添加一个变量：
+```
+ENV DEBIAN_FRONTEND=noninteractive
+```
+
+意思是避免软件包管理器与用户交互，而是直接使用默认值，具体：
+```
+ENV: 这是 Dockerfile 的一个关键字，用于设置环境变量 [1]。
+DEBIAN_FRONTEND: 这是 Debian/Ubuntu Linux 发行版中用于控制软件包管理器（如 apt-get、apt、dpkg）行为的一个特殊环境变量 [1]。
+noninteractive: 这个值告诉软件包管理器在执行安装、升级或其他操作时，不要尝试以交互方式提示用户输入（例如，询问用户是否接受某个许可证、选择一个时区或配置一个服务）[1]。
+为什么使用这个指令？
+在构建 Docker 镜像时，通常需要在无人值守的情况下自动安装软件包。如果软件包安装程序试图与用户进行交互，构建过程将会挂起并失败。设置 DEBIAN_FRONTEND=noninteractive 可以确保所有安装过程都在非交互模式下自动完成，使用默认值或预先配置的选项，从而使 Docker 镜像的构建过程能够顺利完成 [1]。
+```
+
 然后，你需要安装python，基本上是这样的：
 
 ```
@@ -137,7 +151,7 @@ OK，我们Dockerfile的第一句已经有了。
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
     curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 ```
 
 然后需要一些CNB必要的依赖：
@@ -145,17 +159,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ```
 # 安装 code-server 和 vscode 常用插件
 RUN curl -fsSL https://code-server.dev/install.sh | sh \
-  && code-server --install-extension cnbcool.cnb-welcome \
-  && code-server --install-extension redhat.vscode-yaml \
-  && code-server --install-extension dbaeumer.vscode-eslint \
-  && code-server --install-extension waderyan.gitblame \
-  && code-server --install-extension mhutchie.git-graph \
-  && code-server --install-extension donjayamanne.githistory \
-  && code-server --install-extension tencent-cloud.coding-copilot \
-  && echo done
+   && code-server --install-extension cnbcool.cnb-welcome \
+   && code-server --install-extension redhat.vscode-yaml \
+   && code-server --install-extension dbaeumer.vscode-eslint \
+   && code-server --install-extension waderyan.gitblame \
+   && code-server --install-extension mhutchie.git-graph \
+   && code-server --install-extension donjayamanne.githistory \
+   && code-server --install-extension tencent-cloud.coding-copilot \
+   && code-server --install-extension ritwickdey.LiveServer \
+   && echo done
 
 # 安装 ssh 服务与常用工具
-RUN apt-get update && apt-get install -y git wget unzip openssh-server neofetch && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git git-lfs wget unzip openssh-server neofetch \
+    rsync jq vim lsof nload htop net-tools dnsutils \
+ && rm -rf /var/lib/apt/lists/* \
+ && git lfs install --system
 RUN mkdir -p /var/run/sshd
 
 # 指定字符集支持命令行输入中文
@@ -203,7 +222,7 @@ HF_HUB_ENABLE_HF_TRANSFER 是一个环境变量，用于启用 Hugging Face Hub 
 # Python 依赖：
 # - 安装 PyTorch CUDA 12.1 + xformers（用于显存优化）
 # - 安装 transformers / accelerate / safetensors
-# 如果开启HF_HUB_ENABLE_HF_TRANSFER则需要添加它：hf-transfer
+# - 如果开启HF_HUB_ENABLE_HF_TRANSFER则需要添加它：hf-transfer
 RUN python3 -m pip install --upgrade pip setuptools wheel \
  && pip3 install --no-cache-dir \
     torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu121 \
@@ -269,3 +288,7 @@ https://docs.cnb.cool/zh/saas/pricing.html#ji-fei-gui-ze
 如果有什么疑问，答案可能就在这里面：
 
 https://cnb.cool/examples/showcase
+
+### 端口开放方式
+
+https://docs.cnb.cool/zh/workspaces/business-preview.html
