@@ -153,7 +153,7 @@ git是一个必须使用的命令，详见本文中“# CNB的存储空间与Git
 
 首先你需要搞清楚你要运行什么，你运行的这个python代码需要哪些库、哪些模型，这些库和模型支持哪些cuda软件版本。
 
-你需要找一个英伟达的docker镜像，例如`FROM nvidia/cuda:12.4.1-cudnn9-devel-ubuntu22.04`后缀因你是否训练模型而异，如果是推理，那么只需运行时镜像。
+你需要找一个英伟达的docker镜像，例如`FROM pytorch/pytorch:2.9.0-cuda12.8-cudnn9-devel`后缀因你是否训练模型而异，如果是推理，那么只需运行时镜像。
 
 推荐使用`devel`镜像，虽然大一点但是带有编译工具链，能防止python pip依赖包构建问题。
 
@@ -259,9 +259,9 @@ HF_HUB_ENABLE_HF_TRANSFER 是一个环境变量，用于启用 Hugging Face Hub 
 # - 安装 PyTorch CUDA + xformers（用于显存优化）
 # - 安装 transformers / accelerate / safetensors
 # - 如果开启HF_HUB_ENABLE_HF_TRANSFER则需要添加它：hf-transfer
+# && pip3 install --no-cache-dir \
+#    torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu121 \
 RUN python3 -m pip install --upgrade pip setuptools wheel \
- && pip3 install --no-cache-dir \
-    torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu124 \
  && pip3 install --no-cache-dir \
     transformers \
     accelerate \
