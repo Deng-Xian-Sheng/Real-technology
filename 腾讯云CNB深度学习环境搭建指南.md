@@ -51,7 +51,7 @@ $:
   vscode:
     - docker:
         build: .ide/Dockerfile
-        imports: https://cnb.cool/CanQiJin/pandoraHFToken/-/blob/main/env.dev.yml
+      imports: https://cnb.cool/CanQiJin/pandoraHFToken/-/blob/main/env.dev.yml
       runner:
         tags: cnb:arch:amd64:gpu:H20
       services:
@@ -61,10 +61,10 @@ $:
       stages:
         - name: runAPI
           script: | 
-            echo "拉取模型"
-            git clone https://cnb.cool/ai-models/black-forest-labs/FLUX.1-dev /workspace/huggingface
             echo "运行API"
-            HF_TOKEN=$HF_TOKEN python main.py
+            mkdir /workspace/huggingface/
+            echo $HF_TOKEN > /workspace/huggingface/token
+            python main.py
 ```
 
 ### CNB的组织
