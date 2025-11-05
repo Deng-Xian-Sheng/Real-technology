@@ -327,6 +327,12 @@ $:
 
 关于stages&Job这种东西的超时：https://docs.cnb.cool/zh/build/faq.html#chao-shi-wu-shu-chu、https://docs.cnb.cool/zh/build/timeout.html
 
+对于stages&Job的超时，如果你运行的是一个需要长时间或者说持续运行的东西，并且你要使用云原生开发环境来写代码，那么你可以使用nohup这样的命令让stages&Job立即返回，这样不会触发stages&Job的超时，只有云原生开发环境被关闭时才会停止。
+
+如果你运行的是一个类似于ls命令这种直接返回的东西，则不用考虑超时问题。
+
+如果你运行的是一个需要长时间或者说持续运行的东西，但是你不使用云原生开发环境来写代码，只是为了运行这个东西。那么你需要查看👆的文档链接来配置stages&Job的超时时间。
+
 如果不希望提交从huggingface下载的模型到仓库，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
 
 ### 定价与免费额度
