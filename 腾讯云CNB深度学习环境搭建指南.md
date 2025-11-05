@@ -325,6 +325,8 @@ $:
             echo "222"
 ```
 
+关于stages&Job这种东西的超时：https://docs.cnb.cool/zh/build/faq.html#chao-shi-wu-shu-chu、https://docs.cnb.cool/zh/build/timeout.html
+
 如果不希望提交从huggingface下载的模型到仓库，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
 
 ### 定价与免费额度
