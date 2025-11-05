@@ -28,7 +28,7 @@ https://cnb.cool/ai-models
 
 例如：black-forest-labs/FLUX.1-dev
 
-你可以将模型拉取到`/workspace/模型名`，记得在`.gitignore`文件添加排除，否则将模型推送到仓库会占用大量容量。
+你可以将模型拉取到`/workspace/模型名`，然后在`.gitignore`文件添加排除，使用lfs将模型推送到仓库。
 
 在代码中加载时，使用本地路径。因为模型镜像并不是对huggingface的完整镜像，不是镜像站，只是一个仓库，所以将模型拉取，然后使用本地路径加载。
 
@@ -51,7 +51,7 @@ $:
   vscode:
     - docker:
         build: .ide/Dockerfile
-      imports: https://cnb.cool/CanQiJin/pandoraHFToken/-/blob/main/env.dev.yml
+      imports: https://cnb.cool/CanQiJin/pandoraHFToken/-/blob/main/env.dev.yml # 注意在vscode下而不是docker下
       runner:
         tags: cnb:arch:amd64:gpu:H20
       services:
@@ -143,7 +143,7 @@ git是一个必须使用的命令，详见本文中“# CNB的存储空间与Git
 
 你首先需要创建一个组织，然后才能创建一个仓库，或者fork一个。
 
-有了仓库之后，你需要定制你的深度学习云开发环境。虽然你也可以直接点击仓库中的按钮启动云开发环境，但那是默认的环境，因此没有安装深度学习所需的依赖，也没有GPU，即使你安装了依赖，环境在关闭后会将你安装的内容清除。
+有了仓库之后，你需要定制你的深度学习云开发环境。虽然你也可以直接点击仓库中的按钮启动云开发环境，但那是默认的环境，因此没有安装深度学习所需的依赖，也没有GPU，即使你安装了依赖，云开发环境在关闭后也会将你安装的内容清除。
 
 所以我们需要写一个Dockerfile自定义云开发环境，当它构建成docker镜像之后就可以方便的使用。
 
@@ -153,11 +153,20 @@ git是一个必须使用的命令，详见本文中“# CNB的存储空间与Git
 
 首先你需要搞清楚你要运行什么，你运行的这个python代码需要哪些库、哪些模型，这些库和模型支持哪些cuda软件版本。
 
-你需要找一个英伟达的docker镜像，例如`FROM pytorch/pytorch:2.9.0-cuda12.8-cudnn9-devel`后缀因你是否训练模型而异，如果是推理，那么只需运行时镜像。
+你需要找一个英伟达的docker镜像，例如`FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04`后缀`devel`因你是否训练模型而异，如果是推理，那么只需运行时`runtime`镜像。
 
 推荐使用`devel`镜像，虽然大一点但是带有编译工具链，能防止python pip依赖包构建问题。
 
 OK，我们Dockerfile的第一句已经有了。
+
+然后添加一些变量指定字符集：
+
+```
+# 指定字符集支持命令行输入中文
+ENV LANG C.UTF-8
+ENV LANGUAGE C.UTF-8
+ENV LC_ALL C.UTF-8
+```
 
 然后需要添加一个变量：
 ```
@@ -173,20 +182,17 @@ noninteractive: 这个值告诉软件包管理器在执行安装、升级或其�
 在构建 Docker 镜像时，通常需要在无人值守的情况下自动安装软件包。如果软件包安装程序试图与用户进行交互，构建过程将会挂起并失败。设置 DEBIAN_FRONTEND=noninteractive 可以确保所有安装过程都在非交互模式下自动完成，使用默认值或预先配置的选项，从而使 Docker 镜像的构建过程能够顺利完成 [1]。
 ```
 
-然后，你需要安装python，基本上是这样的：
+然后，你需要安装python和ssh服务与常用工具，基本上是这样的：
 
 ```
-# 基础环境（Python、curl 用于安装 code-server）
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv \
-    curl ca-certificates build-essential python-is-python3 python3-dev cmake \
- && rm -rf /var/lib/apt/lists/*
-
-# 创建符号链接，使 'python' 命令指向 'python3'
-RUN ln -sf /usr/bin/python3 /usr/bin/python
+# 基础环境（Python、ssh 服务与常用工具）
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-venv python3-dev python-is-python3 \
+    curl ca-certificates cmake git git-lfs wget unzip openssh-server neofetch \
+    rsync jq vim lsof nload htop net-tools dnsutils zsh
 ```
 
-然后需要一些CNB必要的依赖：
+然后需要安装code-server：
 
 ```
 # 安装 code-server 和 vscode 常用插件
@@ -198,21 +204,9 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh \
    && code-server --install-extension mhutchie.git-graph \
    && code-server --install-extension donjayamanne.githistory \
    && code-server --install-extension tencent-cloud.coding-copilot \
-   && code-server --install-extension ritwickdey.LiveServer \
+   && code-server --install-extension cloudstudio.live-server \
+   && code-server --install-extension bierner.markdown-mermaid \
    && echo done
-
-# 安装 ssh 服务与常用工具
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git git-lfs wget unzip openssh-server neofetch \
-    rsync jq vim lsof nload htop net-tools dnsutils \
- && rm -rf /var/lib/apt/lists/* \
- && git lfs install --system
-RUN mkdir -p /var/run/sshd
-
-# 指定字符集支持命令行输入中文
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
 ```
 
 还可以添加一些有用的环境变量：
@@ -223,13 +217,14 @@ ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 # ENV HF_HUB_ENABLE_HF_TRANSFER=1
 ENV PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+
 # /workspace 是云开发环境启动后的仓库根目录，将模型目录设置到 /workspace/huggingface 并添加git排除文件就可以在不提交模型的情况下使用模型。
 # 如果要提交模型则需要在仓库下执行 git lfs install 以更新 .git/config ，然后 git lfs track "*.safetensors" 然后 git add .gitattributes 然后 git commit -m "add lfs" 然后才能添加模型这样的大文件，例如 git add .
 # 至于为什么不是 /root/.cache/huggingface ，CNB文档没说工作目录与其他目录的区别，但是我认为大多数云开发环境提供工作目录之后，工作目录之外的文件夹读写速度和大小可能不够
 ENV HF_HOME=/workspace/huggingface
 ```
 
-它们的意思是：
+这些变量它们的意思是：
 ```
 PYTHONDONTWRITEBYTECODE=1：不写 .pyc，减少 IO
 PYTHONUNBUFFERED=1：标准输出不缓冲，方便日志
@@ -237,6 +232,7 @@ PIP_NO_CACHE_DIR=1：pip 不缓存，加快镜像层清理
 HF_HUB_ENABLE_HF_TRANSFER=1 开启 hf-transfer 加速下载
 PYTORCH_CUDA_ALLOC_CONF 似乎能释放一些显存防止OOM
 ```
+
 对于HF_HUB_ENABLE_HF_TRANSFER的补充：
 ```
 HF_HUB_ENABLE_HF_TRANSFER 是一个环境变量，用于启用 Hugging Face Hub 的加速文件传输功能。 
@@ -256,12 +252,12 @@ HF_HUB_ENABLE_HF_TRANSFER 是一个环境变量，用于启用 Hugging Face Hub 
 
 ```
 # Python 依赖：
-# - 安装 PyTorch CUDA + xformers（用于显存优化）
+# - 安装 PyTorch CUDA 12.8 + xformers（用于显存优化）
 # - 安装 transformers / accelerate / safetensors
 # - 如果开启HF_HUB_ENABLE_HF_TRANSFER则需要添加它：hf-transfer
-# && pip3 install --no-cache-dir \
-#    torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu121 \
 RUN python3 -m pip install --upgrade pip setuptools wheel \
+ && pip3 install --no-cache-dir \
+    torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu128 \
  && pip3 install --no-cache-dir \
     transformers \
     accelerate \
@@ -272,6 +268,7 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
     peft \
     scipy
 ```
+
 上面是比较基础的一个依赖，你的依赖可能与上述有些不同，例如你可能还需要paddleocr、ultralytics、diffusers这样的库，可以继续添加。
 
 然后就完成了，对于工作目录、开放端口、启动命令，可以在CNB的配置文件中设置。
@@ -303,6 +300,7 @@ $:
       runner:
         tags: cnb:arch:amd64:gpu:H20
 ```
+
 表示我们使用英伟达的H20 GPU。我尝试发现有接近50G的显存可用。
 同时，也有一部分人使用`cnb:arch:amd64:gpu`、`cnb:arch:amd64:gpu:L40`，或许有些不同。
 
@@ -314,7 +312,19 @@ $:
           script: ls -al
 ```
 
-在启动开发环境之前，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
+关于`stages`的用法：https://docs.cnb.cool/zh/build/grammar.html#dan-ge-job
+
+另一种写法：
+```
+      # 开发环境启动后会执行的任务
+      stages:
+        - name: ls
+          script: |
+            echo "111"
+            echo "222"
+```
+
+如果不希望提交从huggingface下载的模型到仓库，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
 
 ### 定价与免费额度
 
