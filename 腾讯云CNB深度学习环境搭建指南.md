@@ -28,7 +28,7 @@ https://cnb.cool/ai-models
 
 例如：black-forest-labs/FLUX.1-dev
 
-你可以将模型拉取到`/workspace/模型名`，然后在`.gitignore`文件添加排除，使用lfs将模型推送到仓库。
+你可以将模型拉取到`/workspace/模型名`，然后在`.gitignore`文件添加排除，或者使用lfs将模型推送到仓库。
 
 在代码中加载时，使用本地路径。因为模型镜像并不是对huggingface的完整镜像，不是镜像站，只是一个仓库，所以将模型拉取，然后使用本地路径加载。
 
