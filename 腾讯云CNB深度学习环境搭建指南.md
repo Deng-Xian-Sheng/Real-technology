@@ -42,7 +42,8 @@ CNB需要通过绑定手机号的形式进行实名认证才能使用。
 
 CNB有三种仓库，公开、私有、密钥
 
-其中，密钥仓库用于存储密钥，这些密钥可以在启动云开发环境时通过变量传入，这样即使你的仓库是公开的，也不会影响你的密钥安全，还能确保使用密钥，例如HF的token。详细用法：https://docs.cnb.cool/zh/repo/secret.html。关于`stages`的用法：https://docs.cnb.cool/zh/build/grammar.html#dan-ge-job
+其中，密钥仓库用于存储密钥，这些密钥可以在启动云开发环境时通过变量传入，这样即使你的仓库是公开的，也不会影响你的密钥安全，还能确保使用密钥，例如HF的token。详细用法：https://docs.cnb.cool/zh/repo/secret.html。
+关于`stages`的用法：https://docs.cnb.cool/zh/build/grammar.html#dan-ge-job
 
 一个例子：
 ```
@@ -57,14 +58,11 @@ $:
       services:
         - vscode
         - docker
-      # 开发环境启动后会执行的任务
       stages:
-        - name: runAPI
-          script: | 
-            echo "运行API"
+        - name: writeToken
+          script: |
             mkdir /workspace/huggingface/
             echo $HF_TOKEN > /workspace/huggingface/token
-            python main.py
 ```
 
 ### CNB的组织
