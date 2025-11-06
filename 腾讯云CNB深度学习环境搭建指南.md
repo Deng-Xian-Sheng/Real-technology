@@ -61,6 +61,7 @@ $:
       services:
         - vscode
         - docker
+      # 开发环境启动后会执行的任务（但构建完成的docker镜像的自动上传会被它阻塞，如果它失败，镜像不会上传）
       stages:
         - name: writeToken
           script: |
