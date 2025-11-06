@@ -290,7 +290,7 @@ $:
       services:
         - vscode
         - docker
-      # 开发环境启动后会执行的任务
+      # 开发环境启动后会执行的任务（但构建完成的docker镜像的自动上传会被它阻塞，如果它失败，镜像不会上传）
       stages:
         - name: ls
           script: ls -al
@@ -304,12 +304,15 @@ $:
 ```
 
 表示我们使用英伟达的H20 GPU。我尝试发现有接近50G的显存可用。
-同时，也有一部分人使用`cnb:arch:amd64:gpu`、`cnb:arch:amd64:gpu:L40`，或许有些不同。tags详见：https://docs.cnb.cool/zh/build/build-node.html
+同时，也有一部分人使用`cnb:arch:amd64:gpu`、`cnb:arch:amd64:gpu:L40`，或许有些不同。
+
+tags详见：https://docs.cnb.cool/zh/build/build-node.html
+
 对于cpu详见：https://docs.cnb.cool/zh/build/intro.html#cpu-zi-you
 
-如果你需要在云开发环境启动后做些什么，例如从CNB的内网模型镜像拉取模型，或者从huggingface下载模型，或者运行类似于无服务器API的脚本，那么你可以写到这里：
+如果你需要在云开发环境启动后做些什么，例如从CNB的内网模型镜像拉取模型，或者从huggingface下载模型，或者运行其他有**结束时间**的脚本，那么你可以写到这里：
 ```
-      # 开发环境启动后会执行的任务
+      # 开发环境启动后会执行的任务（但构建完成的docker镜像的自动上传会被它阻塞，如果它失败，镜像不会上传）
       stages:
         - name: ls
           script: ls -al
@@ -319,7 +322,7 @@ $:
 
 另一种写法：
 ```
-      # 开发环境启动后会执行的任务
+      # 开发环境启动后会执行的任务（但构建完成的docker镜像的自动上传会被它阻塞，如果它失败，镜像不会上传）
       stages:
         - name: ls
           script: |
@@ -327,13 +330,15 @@ $:
             echo "222"
 ```
 
-关于stages&Job这种东西的超时：https://docs.cnb.cool/zh/build/faq.html#chao-shi-wu-shu-chu、https://docs.cnb.cool/zh/build/timeout.html
+关于stages&Job这种东西的超时：`https://docs.cnb.cool/zh/build/faq.html#chao-shi-wu-shu-chu`、`https://docs.cnb.cool/zh/build/timeout.html`
 
 对于stages&Job的超时，如果你运行的是一个需要长时间或者说持续运行的东西，并且你要使用云原生开发环境来写代码，那么你可以使用nohup这样的命令让stages&Job立即返回，这样不会触发stages&Job的超时，只有云原生开发环境被关闭时才会停止。
 
 如果你运行的是一个类似于ls命令这种直接返回的东西，则不用考虑超时问题。
 
-如果你运行的是一个需要长时间或者说持续运行的东西，但是你不使用云原生开发环境来写代码，只是为了运行这个东西。那么你需要查看👆的文档链接来配置stages&Job的超时时间。
+如果你运行的是一个需要长时间或者说持续运行的东西，但是你不使用云原生开发环境来写代码，只是为了运行这个东西。那么你需要使用ssh来运行它，使用ssh时，（经过查看“构建日志”与分析测试）相当于打开着云原生开发环境，所以也能避免云原生开发环境被超时关闭。
+
+（ps：如果你想知道我是如何“经过查看“构建日志”与分析测试”的，请给我50或者100人民币）
 
 如果不希望提交从huggingface下载的模型到仓库，记得创建`.gitignore`文件并添加`/workspace/huggingface`，这样就避免了提交占大量仓库空间的开源模型到仓库。如果你需要提交微调好的模型，记得使用lfs。
 
