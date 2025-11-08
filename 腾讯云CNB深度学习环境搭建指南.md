@@ -273,7 +273,35 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
 
 上面是比较基础的一个依赖，你的依赖可能与上述有些不同，例如你可能还需要paddleocr、ultralytics、diffusers这样的库，可以继续添加。
 
-然后就完成了，对于工作目录、开放端口、启动命令，可以在CNB的配置文件中设置。
+然后Dockerfile就完成了。
+
+对于开放端口、启动命令，在Dockerfile中设置了也不会生效！
+
+对于开放端口见本文`### 端口开放方式`，对于启动命令，有几种方式但都有一定的局限性：
+
+1、stages&Job
+
+局限性：
+- Job超时策略和云开发环境（云原生环境）的超时策略之间有点“摩擦”，不容易理解，其文档有些冲突部分。超时的规则判定有风险。
+- Job运行在BeforeEnd之前（等待云原生环境结束之前），似乎会导致Dockerfile构建的镜像推送不到docker构建缓存中，特别是当Job出现运行错误的情况下这种情况更容易发生。
+
+2、.cnb.yml使用CNB_WELCOME_CMD
+
+示例：
+```
+      env:
+        CNB_WELCOME_CMD: xxx
+```
+
+见：https://cnb.cool/SKDZSS90/ComfyUI-yi_dian_tong/-/blob/main/.cnb.yml
+
+局限性：
+- 它在第一次打开WebIDE的时候，会在WebIDE的终端那一栏执行，如果WebIDE从未打开，它不会执行，如果通过ssh连接字符串连接，它不会执行。未测试其他IDE例如vscode是否会执行。
+
+3、云开发环境启动后，通过ssh手动执行
+
+局限性：
+- 需要手动或者本地电脑的脚本来控制。
 
 要把写好的Dockerfile放在仓库下的`.ide/Dockerfile`目录下。
 
