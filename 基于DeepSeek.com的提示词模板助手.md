@@ -6,6 +6,8 @@
 
 这是一个油猴脚本，它为`chat.deepseek.com`提供了“提示词模板”的功能，模板覆盖了公务员和办公室文员常用的提示词。（模板通过json文件存储，如果你会写json，可自己增加模板。）
 
+<img width="1855" height="1365" alt="image" src="https://github.com/user-attachments/assets/77802801-0abe-4343-a669-9e81120fb6b5" />
+
 ## 如何使用？
 
 它在浏览器上运行，以谷歌浏览器为例：
