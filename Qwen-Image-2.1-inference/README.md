@@ -1,7 +1,32 @@
 ## 用于 Qwen-Image-2.1 推理的 gradio
 
-它被设计为：在 autodl 上部署。
+它被设计为：在 autodl 上部署。（**Pro实例，4090-48GB**）（**第一次运行会在加载模型时等待许久，正常现象，我不知道 autodl 用了什么魔法实现的 4090-48GB，不知道是 qwen 的问题还是 autodl 的问题，加载模型比较慢。**）
 但是实际上，与本地部署只有非常微小的差别。
+
+```bash
+# python app.py 
+[ERROR] `image_like_kwargs` is part of BaseImageProcessor.preprocess's signature, but not documented. Make sure to add it to the docstring of the function in /root/miniconda3/lib/python3.12/site-packages/transformers/image_processing_utils.py.
+Loading model: ./Qwen-Image-2.1
+/root/miniconda3/lib/python3.12/site-packages/diffusers/utils/deprecation_utils.py:23: FutureWarning: `torch_dtype` is deprecated and will be removed in version 1.0.0. Please use `dtype` instead.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+Loading checkpoint shards: 100%|█████████████████████████████████████████| 2/2 [00:00<00:00,  3.71it/s]
+Loading weights: 100%|██████████████████████████████████████████████| 750/750 [00:00<00:00, 790.91it/s]
+Loading pipeline components...: 100%|████████████████████████████████████| 5/5 [00:06<00:00,  1.29s/it]
+Model loaded.
+* Running on local URL:  http://0.0.0.0:7860
+* To create a public link, set `share=True` in `launch()`.
+```
+
+该错误是库源码的文档错误，不影响模型推理。
+```
+[ERROR] `image_like_kwargs` is part of BaseImageProcessor.preprocess's signature, but not documented. Make sure to add it to the docstring of the function in /root/miniconda3/lib/python3.12/site-packages/transformers/image_processing_utils.py.
+```
+
+WebUI界面和支持的字段参数：
+<img width="2345" height="1695" alt="image" src="https://github.com/user-attachments/assets/f48ab923-3653-4e6a-866e-b516f5b8f3d5" />
+<img width="2341" height="1723" alt="image" src="https://github.com/user-attachments/assets/46fd6e3f-0791-4cc2-aa3d-769198273a14" />
+
+建议通过ssh隧道访问：`ssh -CNg -L 7860:127.0.0.1:7860 root@xxx.com -p 12345`
 
 ## 快速开始
 
