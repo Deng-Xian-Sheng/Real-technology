@@ -4,6 +4,15 @@ import torch
 import gradio as gr
 
 from PIL import Image
+from pillow_heif import register_heif_opener
+# ---------------------------------------------------------
+# Image format support
+# ---------------------------------------------------------
+
+# iPhone / iPad may upload HEIC files even when the
+# temporary filename created by Gradio ends in ".jpeg".
+register_heif_opener()
+
 from diffusers import QwenImage21Pipeline
 
 # =========================================================
