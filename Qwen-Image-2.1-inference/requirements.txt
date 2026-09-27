@@ -4,6 +4,7 @@ torchvision
 accelerate
 safetensors
 pillow
+pillow-heif
 huggingface_hub
 diffusers @ git+https://github.com/huggingface/diffusers.git
 transformers @ git+https://github.com/huggingface/transformers.git
