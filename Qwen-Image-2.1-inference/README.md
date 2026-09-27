@@ -76,3 +76,19 @@ hf download Qwen/Qwen-Image-2.1 \
   --local-dir ./Qwen-Image-2.1 \
   --max-workers 1
 ```
+
+## Help
+
+代码中的:
+
+```python
+pipe.to("cuda")
+# pipe.enable_model_cpu_offload()
+```
+
+对于Pro实例，4090-48GB，如果`1024*1024=Z`，如果你的分辨率`X*Y > Z`，那么用:
+
+```python
+# pipe.to("cuda")
+pipe.enable_model_cpu_offload()
+```
