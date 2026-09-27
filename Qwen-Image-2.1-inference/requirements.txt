@@ -1,0 +1,9 @@
+gradio==6.28.0
+torch
+torchvision
+accelerate
+safetensors
+pillow
+huggingface_hub
+diffusers @ git+https://github.com/huggingface/diffusers.git
+transformers @ git+https://github.com/huggingface/transformers.git
