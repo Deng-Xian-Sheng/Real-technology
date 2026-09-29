@@ -15,6 +15,7 @@ register_heif_opener()
 
 from diffusers import QwenImage21Pipeline
 
+
 # =========================================================
 # Config
 # =========================================================
@@ -147,14 +148,26 @@ def text_to_image(
         "callback_on_step_end": step_callback,
     }
 
-    # Negative prompt 未填写时也不传
-    if negative_prompt and negative_prompt.strip():
-        pipe_kwargs["negative_prompt"] = negative_prompt.strip()
-
-    # CFG 未开启时完全不传 true_cfg_scale
+    # Negative Prompt 和 True CFG 是一组功能。
+    # 未启用时，两者都不传给 pipeline。
     if enable_cfg:
-        pipe_kwargs["true_cfg_scale"] = float(cfg_scale)
-
+        cfg = float(cfg_scale)
+        neg = negative_prompt.strip() if negative_prompt else ""
+    
+        if not neg:
+            raise gr.Error(
+                "Negative Prompt cannot be empty when "
+                "Negative Prompt + CFG is enabled."
+            )
+    
+        if cfg <= 1.0:
+            raise gr.Error(
+                "True CFG Scale must be greater than 1.0."
+            )
+    
+        pipe_kwargs["negative_prompt"] = neg
+        pipe_kwargs["true_cfg_scale"] = cfg
+    
     try:
         result = pipe(**pipe_kwargs)
 
@@ -267,11 +280,25 @@ def edit_image(
         "callback_on_step_end": step_callback,
     }
 
-    if negative_prompt and negative_prompt.strip():
-        pipe_kwargs["negative_prompt"] = negative_prompt.strip()
-
+    # Negative Prompt 和 True CFG 是一组功能。
+    # 未启用时，两者都不传给 pipeline。
     if enable_cfg:
-        pipe_kwargs["true_cfg_scale"] = float(cfg_scale)
+        cfg = float(cfg_scale)
+        neg = negative_prompt.strip() if negative_prompt else ""
+    
+        if not neg:
+            raise gr.Error(
+                "Negative Prompt cannot be empty when "
+                "Negative Prompt + CFG is enabled."
+            )
+    
+        if cfg <= 1.0:
+            raise gr.Error(
+                "True CFG Scale must be greater than 1.0."
+            )
+    
+        pipe_kwargs["negative_prompt"] = neg
+        pipe_kwargs["true_cfg_scale"] = cfg
 
     # -----------------------------------------------------
     # Inference
@@ -307,6 +334,12 @@ Local Qwen-Image-2.1 inference server.
 """
     )
 
+    def toggle_negative_cfg(enabled):
+        return (
+            gr.update(interactive=enabled),
+            gr.update(interactive=enabled),
+        )
+
     # -------------------------
     # Text to Image
     # -------------------------
@@ -322,7 +355,8 @@ Local Qwen-Image-2.1 inference server.
             label="Negative Prompt",
             lines=3,
             value="",
-            placeholder="Optional negative prompt..."
+            placeholder="Enabled when Negative Prompt + CFG is enabled",
+            interactive=False,
         )
 
         with gr.Row():
@@ -348,12 +382,12 @@ Local Qwen-Image-2.1 inference server.
             )
             
             t2i_enable_cfg = gr.Checkbox(
-                label="Enable CFG",
+                label="Enable Negative Prompt + CFG",
                 value=False,
             )
         
             t2i_cfg = gr.Slider(
-                minimum=1.0,
+                minimum=1.1,
                 maximum=10.0,
                 value=4.0,
                 step=0.1,
@@ -362,9 +396,12 @@ Local Qwen-Image-2.1 inference server.
             )
 
             t2i_enable_cfg.change(
-                fn=lambda enabled: gr.update(interactive=enabled),
+                fn=toggle_negative_cfg,
                 inputs=t2i_enable_cfg,
-                outputs=t2i_cfg,
+                outputs=[
+                    t2i_negative_prompt,
+                    t2i_cfg,
+                ],
                 queue=False,
             )
 
@@ -441,7 +478,8 @@ Local Qwen-Image-2.1 inference server.
             label="Negative Prompt",
             lines=3,
             value="",
-            placeholder="Optional negative prompt..."
+            placeholder="Enabled when Negative Prompt + CFG is enabled",
+            interactive=False,
         )
 
         with gr.Row():
@@ -461,12 +499,12 @@ Local Qwen-Image-2.1 inference server.
             )
 
             edit_enable_cfg = gr.Checkbox(
-                label="Enable CFG",
+                label="Enable Negative Prompt + CFG",
                 value=False,
             )
         
             edit_cfg = gr.Slider(
-                minimum=1.0,
+                minimum=1.1,
                 maximum=10.0,
                 value=4.0,
                 step=0.1,
@@ -475,9 +513,12 @@ Local Qwen-Image-2.1 inference server.
             )
 
             edit_enable_cfg.change(
-                fn=lambda enabled: gr.update(interactive=enabled),
+                fn=toggle_negative_cfg,
                 inputs=edit_enable_cfg,
-                outputs=edit_cfg,
+                outputs=[
+                    edit_negative_prompt,
+                    edit_cfg,
+                ],
                 queue=False,
             )
 
