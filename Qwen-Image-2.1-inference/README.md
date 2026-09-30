@@ -52,6 +52,38 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
+### 下载模型
+
+无卡模式下载时可能会OOM，你需要手动下载模型，并修改代码中的模型为本地路径，并禁用 Xet 下载后端，并限制并发数：
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+HF_HOME=/root/autodl-tmp/hf-cache \
+HF_HUB_DISABLE_XET=1 \
+hf download Qwen/Qwen-Image-2.1 \
+  --local-dir ./Qwen-Image-2.1 \
+  --max-workers 1
+```
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+HF_HOME=/root/autodl-tmp/hf-cache \
+HF_HUB_DISABLE_XET=1 \
+hf download Viggle/Qwen-Image-2.1-viggle-turbo \
+  Qwen-Image-2.1-viggle-turbo-v0.2.1-6step-lora-r256.safetensors \
+  --local-dir ./Qwen-Image-2.1-viggle-turbo \
+  --max-workers 1
+```
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+HF_HOME=/root/autodl-tmp/hf-cache \
+HF_HUB_DISABLE_XET=1 \
+hf download Viggle/Qwen-Image-2.1-viggle-turbo \
+  --include "scheduler/*" \
+  --local-dir ./Qwen-Image-2.1-viggle-turbo \
+  --max-workers 1
+```
+
 ### 跑
 
 ```bash
@@ -65,16 +97,6 @@ if you set `~/.bashrc`
 
 ```bash
 python app.py
-```
-
-推荐使用有卡模式，直接模型下载+推理一键OK。否则，无卡模式下载时可能会OOM，你需要手动下载模型，并修改代码中的模型为本地路径，并禁用 Xet 下载后端，并限制并发数：
-```bash
-HF_ENDPOINT=https://hf-mirror.com \
-HF_HOME=/root/autodl-tmp/hf-cache \
-HF_HUB_DISABLE_XET=1 \
-hf download Qwen/Qwen-Image-2.1 \
-  --local-dir ./Qwen-Image-2.1 \
-  --max-workers 1
 ```
 
 ## Help
