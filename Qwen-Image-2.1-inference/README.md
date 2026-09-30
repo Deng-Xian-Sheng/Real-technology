@@ -82,6 +82,7 @@ hf download Qwen/Qwen-Image-2.1 \
 代码中的:
 
 ```python
+# 是否只使用CUDA
 if False:
     pipe.to("cuda")
     # Decode large outputs in tiles so a 2K VAE decode fits next to the weights.
@@ -112,11 +113,29 @@ else:
 torch.compile
 
 ```python
-# 如果你批量生成同比例的图片，可以开启这个以加速。对于不同比例的图片，每次都会重新编译，得不偿失。
-# # 官方建议：offload + compile 组合时调大编译缓存，避免形状变化触发大量重编译
-# torch._dynamo.config.cache_size_limit = 1000
+# 如果你批量生成同比例的图片，可以开启torch.compile以加速。对于不同比例的图片，每次都会重新编译，得不偿失。
+if False:
+    # 官方建议：offload + compile 组合时调大编译缓存，避免形状变化触发大量重编译
+    torch._dynamo.config.cache_size_limit = 1000
+    
+    from diffusers.models.transformers.transformer_qwenimage21 import QwenImage21FlexAttnProcessor
+    pipe.transformer.set_attn_processor(QwenImage21FlexAttnProcessor())
+    pipe.transformer.compile()
+```
 
-# from diffusers.models.transformers.transformer_qwenimage21 import QwenImage21FlexAttnProcessor
-# pipe.transformer.set_attn_processor(QwenImage21FlexAttnProcessor())
-# pipe.transformer.compile()
+---
+
+```
+# 是否开启int8量化推理
+if True:
+    try:
+        from optimum.quanto import quantize as quanto_quantize, freeze, qint8
+    except ImportError:
+        raise RuntimeError(
+            "需要安装 optimum-quanto 才能使用量化：\n"
+            "pip install 'optimum-quanto'"
+        )
+    print("Quantizing transformer to int8 with optimum-quanto...")
+    quanto_quantize(pipe.transformer, weights=qint8)
+    freeze(pipe.transformer)
 ```
