@@ -1,6 +1,11 @@
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import random
 import torch
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
 import gradio as gr
 
 from PIL import Image
@@ -60,8 +65,25 @@ pipe = QwenImage21Pipeline.from_pretrained(
     torch_dtype=torch.bfloat16,
 )
 
-pipe.to("cuda")
-# pipe.enable_model_cpu_offload()
+if False:
+    pipe.to("cuda")
+    # Decode large outputs in tiles so a 2K VAE decode fits next to the weights.
+    pipe.vae.enable_tiling(
+        tile_sample_min_height=1536,
+        tile_sample_min_width=1536,
+        tile_sample_stride_height=1152,
+        tile_sample_stride_width=1152,
+    )
+else:
+    pipe.vae.enable_slicing()
+    # Decode large outputs in tiles so a 2K VAE decode fits next to the weights.
+    pipe.vae.enable_tiling(
+        tile_sample_min_height=1536,
+        tile_sample_min_width=1536,
+        tile_sample_stride_height=1152,
+        tile_sample_stride_width=1152,
+    )
+    pipe.enable_model_cpu_offload()
 
 # 推理模式
 pipe.set_progress_bar_config(disable=False)
@@ -268,7 +290,7 @@ def edit_image(
     # -----------------------------------------------------
     # Pipeline arguments
     # -----------------------------------------------------
-
+    
     pipe_kwargs = {
         "prompt": instruction.strip(),
 
@@ -305,6 +327,7 @@ def edit_image(
     # -----------------------------------------------------
 
     try:
+        pipe_kwargs["output_resolution"] = 2048
         result = pipe(**pipe_kwargs)
 
     except torch.cuda.OutOfMemoryError:
@@ -471,6 +494,9 @@ Local Qwen-Image-2.1 inference server.
             placeholder=(
                 "Describe how to edit/combine the reference images. "
                 "Refer to them as image 1, image 2, image 3..."
+            ),
+            value=(
+                "将输入图片中的人物改为全身裸体状态：去除所有衣物，保留原有面部特征、发型、姿态及背景环境。重点对下体进行清晰而完整的描绘：阴部轮廓分明、形状完整饱满、左右对称、不扭曲不变形，与大腿及髋部自然衔接，整体符合真实人体解剖结构；同时保持皮肤质感真实、肤色自然，受光与阴影与画面既有的光线逻辑一致。"
             )
         )
 
