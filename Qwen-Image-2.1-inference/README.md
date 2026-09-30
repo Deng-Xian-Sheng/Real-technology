@@ -24,8 +24,9 @@ Model loaded.
 ```
 
 WebUI界面和支持的字段参数：
-<img width="2345" height="1695" alt="image" src="https://github.com/user-attachments/assets/f48ab923-3653-4e6a-866e-b516f5b8f3d5" />
-<img width="2341" height="1723" alt="image" src="https://github.com/user-attachments/assets/46fd6e3f-0791-4cc2-aa3d-769198273a14" />
+<img width="2303" height="1715" alt="image" src="https://github.com/user-attachments/assets/1221900d-0dae-4200-8680-a27f2b8e2229" />
+<img width="2217" height="1737" alt="image" src="https://github.com/user-attachments/assets/b92f945e-63af-47f3-8ef7-8251e8361467" />
+
 
 建议通过ssh隧道访问：`ssh -CNg -L 7860:127.0.0.1:7860 root@xxx.com -p 12345`
 
