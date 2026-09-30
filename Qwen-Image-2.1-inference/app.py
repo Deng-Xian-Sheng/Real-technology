@@ -85,6 +85,14 @@ else:
     )
     pipe.enable_model_cpu_offload()
 
+# 如果你批量生成同比例的图片，可以开启这个以加速。对于不同比例的图片，每次都会重新编译，得不偿失。
+# # 官方建议：offload + compile 组合时调大编译缓存，避免形状变化触发大量重编译
+# torch._dynamo.config.cache_size_limit = 1000
+
+# from diffusers.models.transformers.transformer_qwenimage21 import QwenImage21FlexAttnProcessor
+# pipe.transformer.set_attn_processor(QwenImage21FlexAttnProcessor())
+# pipe.transformer.compile()
+
 # 推理模式
 pipe.set_progress_bar_config(disable=False)
 
@@ -248,7 +256,7 @@ def edit_image(
                 f"Unsupported image type: {type(item).__name__}"
             )
 
-        pil_images.append(img.convert("RGB"))
+        pil_images.append(img.convert("RGBA"))
 
     if not instruction or not instruction.strip():
         raise gr.Error("Instruction cannot be empty.")
