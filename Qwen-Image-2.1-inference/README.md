@@ -64,6 +64,7 @@ hf download Qwen/Qwen-Image-2.1 \
   --max-workers 1
 ```
 
+6 step 推理需要的 lora 和 scheduler，小于2GB
 ```bash
 HF_ENDPOINT=https://hf-mirror.com \
 HF_HOME=/root/autodl-tmp/hf-cache \
@@ -160,4 +161,24 @@ if True:
     print("Quantizing transformer to int8 with optimum-quanto...")
     quanto_quantize(pipe.transformer, weights=qint8)
     freeze(pipe.transformer)
+```
+
+---
+
+```python
+# 使用 6 step 推理
+if True:
+    pipe.load_lora_weights(
+        "./Qwen-Image-2.1-viggle-turbo",
+        weight_name="Qwen-Image-2.1-viggle-turbo-v0.2.1-6step-lora-r256.safetensors",
+        local_files_only=True,
+    )
+    
+    pipe.scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
+        "./Qwen-Image-2.1-viggle-turbo",
+        subfolder="scheduler",
+        local_files_only=True,
+    )
+    SIGMAS = [1.0, 0.9375, 0.875, 0.75, 0.5, 0.25]
+
 ```
