@@ -147,7 +147,7 @@ if False:
 
 ---
 
-```
+```python
 # 是否开启int8量化推理
 if True:
     try:
