@@ -18,7 +18,7 @@ from pillow_heif import register_heif_opener
 # temporary filename created by Gradio ends in ".jpeg".
 register_heif_opener()
 
-from diffusers import QwenImage21Pipeline
+from diffusers import QwenImage21Pipeline, FlowMatchEulerDiscreteScheduler
 
 
 # =========================================================
@@ -27,7 +27,7 @@ from diffusers import QwenImage21Pipeline
 
 MODEL_ID = os.environ.get(
     "QWEN_IMAGE_MODEL",
-    "Qwen/Qwen-Image-2.1"
+    "./Qwen-Image-2.1"
 )
 
 MAX_SEED = 2**31 - 1
@@ -53,6 +53,7 @@ SIZE_PRESETS = {
     "1536x2752": (1536, 2752),
 }
 
+SIGMAS = None
 
 # =========================================================
 # Load model once
@@ -64,6 +65,21 @@ pipe = QwenImage21Pipeline.from_pretrained(
     MODEL_ID,
     torch_dtype=torch.bfloat16,
 )
+
+# 使用 6 step 推理
+if True:
+    pipe.load_lora_weights(
+        "./Qwen-Image-2.1-viggle-turbo",
+        weight_name="Qwen-Image-2.1-viggle-turbo-v0.2.1-6step-lora-r256.safetensors",
+        local_files_only=True,
+    )
+    
+    pipe.scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
+        "./Qwen-Image-2.1-viggle-turbo",
+        subfolder="scheduler",
+        local_files_only=True,
+    )
+    SIGMAS = [1.0, 0.9375, 0.875, 0.75, 0.5, 0.25]
 
 # 是否开启int8量化推理
 if True:
@@ -99,11 +115,11 @@ else:
     )
     pipe.enable_model_cpu_offload()
 
+# torch.compile加速
 # 如果你批量生成同比例的图片，可以开启torch.compile以加速。对于不同比例的图片，每次都会重新编译，得不偿失。
 if False:
     # 官方建议：offload + compile 组合时调大编译缓存，避免形状变化触发大量重编译
     torch._dynamo.config.cache_size_limit = 1000
-    
     from diffusers.models.transformers.transformer_qwenimage21 import QwenImage21FlexAttnProcessor
     pipe.transformer.set_attn_processor(QwenImage21FlexAttnProcessor())
     pipe.transformer.compile()
@@ -214,6 +230,9 @@ def text_to_image(
         pipe_kwargs["true_cfg_scale"] = cfg
     
     try:
+        if SIGMAS:
+            pipe_kwargs["sigmas"] = SIGMAS
+
         result = pipe(**pipe_kwargs)
 
     except torch.cuda.OutOfMemoryError:
@@ -351,6 +370,10 @@ def edit_image(
 
     try:
         pipe_kwargs["output_resolution"] = 2048
+        
+        if SIGMAS:
+            pipe_kwargs["sigmas"] = SIGMAS
+        
         result = pipe(**pipe_kwargs)
 
     except torch.cuda.OutOfMemoryError:
@@ -416,7 +439,7 @@ Local Qwen-Image-2.1 inference server.
             t2i_steps = gr.Slider(
                 minimum=1,
                 maximum=50,
-                value=40,
+                value=6 if SIGMAS else 40,
                 step=1,
                 label="Steps",
             )
@@ -536,7 +559,7 @@ Local Qwen-Image-2.1 inference server.
             edit_steps = gr.Slider(
                 minimum=1,
                 maximum=50,
-                value=40,
+                value=6 if SIGMAS else 40,
                 step=1,
                 label="Steps",
             )
