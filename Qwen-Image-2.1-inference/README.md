@@ -106,3 +106,17 @@ else:
 对于32-48GB的显卡，生成1024x1024可以使用cuda，更大的2K图片需要使用enable_model_cpu_offload
 
 代码中，编辑图片时，默认采用2k（这是为了不降低原始图片清晰度，特别是在原始图片很清晰时）。
+
+---
+
+torch.compile
+
+```python
+# 如果你批量生成同比例的图片，可以开启这个以加速。对于不同比例的图片，每次都会重新编译，得不偿失。
+# # 官方建议：offload + compile 组合时调大编译缓存，避免形状变化触发大量重编译
+# torch._dynamo.config.cache_size_limit = 1000
+
+# from diffusers.models.transformers.transformer_qwenimage21 import QwenImage21FlexAttnProcessor
+# pipe.transformer.set_attn_processor(QwenImage21FlexAttnProcessor())
+# pipe.transformer.compile()
+```
