@@ -1,6 +1,6 @@
 ## 用于 Qwen-Image-2.1 推理的 gradio
 
-它被设计为：在 autodl 上部署。（**Pro实例，4090-48GB**）（**第一次运行会在加载模型时等待许久，正常现象，我不知道 autodl 用了什么魔法实现的 4090-48GB，不知道是 qwen 的问题还是 autodl 的问题，加载模型比较慢。**）
+它被设计为：在 autodl 上部署。（**32GB**）（**第一次运行会在加载模型时等待许久，正常现象，我不知道 autodl 用了什么魔法实现的 32GB，不知道是 qwen 的问题还是 autodl 的问题，加载模型比较慢。**）
 
 但是实际上，与本地部署只有非常微小的差别。
 
@@ -82,13 +82,27 @@ hf download Qwen/Qwen-Image-2.1 \
 代码中的:
 
 ```python
-pipe.to("cuda")
-# pipe.enable_model_cpu_offload()
+if False:
+    pipe.to("cuda")
+    # Decode large outputs in tiles so a 2K VAE decode fits next to the weights.
+    pipe.vae.enable_tiling(
+        tile_sample_min_height=1536,
+        tile_sample_min_width=1536,
+        tile_sample_stride_height=1152,
+        tile_sample_stride_width=1152,
+    )
+else:
+    pipe.vae.enable_slicing()
+    # Decode large outputs in tiles so a 2K VAE decode fits next to the weights.
+    pipe.vae.enable_tiling(
+        tile_sample_min_height=1536,
+        tile_sample_min_width=1536,
+        tile_sample_stride_height=1152,
+        tile_sample_stride_width=1152,
+    )
+    pipe.enable_model_cpu_offload()
 ```
 
-对于Pro实例，4090-48GB，如果`1024*1024=Z`，如果你的分辨率`X*Y > Z`，那么用:
+对于32-48GB的显卡，生成1024x1024可以使用cuda，更大的2K图片需要使用enable_model_cpu_offload
 
-```python
-# pipe.to("cuda")
-pipe.enable_model_cpu_offload()
-```
+代码中，编辑图片时，默认采用2k（这是为了不降低原始图片清晰度，特别是在原始图片很清晰时）。
